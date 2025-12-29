@@ -1,0 +1,4247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YearFlow - 年度目标管理</title>
+
+  <!-- ========== PWA 配置开始 ========== -->
+  <!-- PWA 基础配置 -->
+  <meta name="application-name" content="YearFlow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="YearFlow">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="msapplication-TileColor" content="#0d1117">
+  
+  <!-- 内联 manifest -->
+  <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22YearFlow%22%2C%22short_name%22%3A%22YearFlow%22%2C%22description%22%3A%22%E5%B9%B4%E5%BA%A6%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA%E5%B7%A5%E5%85%B7%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230d1117%22%2C%22theme_color%22%3A%22%230d1117%22%2C%22orientation%22%3A%22portrait-primary%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%2520512%2520512'%253E%253Crect%2520fill%3D'%252358a6ff'%2520width%3D'512'%2520height%3D'512'%2520rx%3D'128'%2F%253E%253Ctext%2520x%3D'50%2525'%2520y%3D'55%2525'%2520font-size%3D'280'%2520text-anchor%3D'middle'%2520fill%3D'white'%253E%25F0%259F%258E%25AF%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+  
+  <!-- 应用图标（使用内联SVG） -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%2358a6ff' width='512' height='512' rx='128'/%3E%3Ctext x='50%25' y='55%25' font-size='280' text-anchor='middle' fill='white'%3E🎯%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%2358a6ff' width='512' height='512' rx='128'/%3E%3Ctext x='50%25' y='55%25' font-size='280' text-anchor='middle' fill='white'%3E🎯%3C/text%3E%3C/svg%3E">
+  <!-- ========== PWA 配置结束 ========== -->
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border-color: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-yellow: #d29922;
+      --accent-red: #f85149;
+      --accent-purple: #a371f7;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #e8ecf0;
+      --border-color: #d0d7de;
+      --text-primary: #1f2328;
+      --text-secondary: #656d76;
+      --text-muted: #8c959f;
+      --accent-blue: #0969da;
+      --accent-green: #1a7f37;
+      --accent-yellow: #9a6700;
+      --accent-red: #d1242f;
+      --accent-purple: #8250df;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      margin-bottom: 8px;
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .nav-icon {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .nav-badge {
+      position: absolute;
+      right: 12px;
+      background: var(--accent-red);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .nav-badge.hidden {
+      display: none;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      margin-left: 240px;
+      min-height: 100vh;
+    }
+
+    .page {
+      display: none;
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    .page-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* 按钮 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-color);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 6px 10px;
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.8rem;
+    }
+
+    /* 卡片 */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 仪表盘 */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    .stat-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .year-theme {
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .year-theme:hover {
+      border-color: var(--accent-purple);
+    }
+
+    .year-theme-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .year-theme-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .focus-kr {
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-yellow);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .focus-kr-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .focus-kr-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .focus-kr-okr {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .quick-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-action-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+
+    .quick-action-icon {
+      font-size: 1.5rem;
+    }
+
+    .quick-action-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    /* OKR样式 */
+    .okr-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .okr-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .okr-header:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .okr-toggle {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      transition: transform 0.2s;
+    }
+
+    .okr-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .okr-title {
+      flex: 1;
+      font-weight: 600;
+    }
+
+    .okr-progress {
+      font-size: 0.9rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    .okr-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .kr-list {
+      border-top: 1px solid var(--border-color);
+      padding: 12px;
+    }
+
+    .kr-list.hidden {
+      display: none;
+    }
+
+    .kr-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .kr-item.focused {
+      border: 1px solid var(--accent-yellow);
+    }
+
+    .kr-type {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--accent-blue)22;
+      color: var(--accent-blue);
+      white-space: nowrap;
+    }
+
+    .kr-type.checkbox {
+      background: var(--accent-purple)22;
+      color: var(--accent-purple);
+    }
+
+    .kr-info {
+      flex: 1;
+    }
+
+    .kr-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .kr-title {
+      font-weight: 500;
+    }
+
+    .kr-focus-badge {
+      font-size: 0.75rem;
+      color: var(--accent-yellow);
+    }
+
+    .kr-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .kr-progress-bar {
+      flex: 1;
+      max-width: 200px;
+    }
+
+    .kr-value-input {
+      width: 60px;
+      padding: 4px 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 0.85rem;
+    }
+
+    .add-kr-btn {
+      padding: 12px;
+      text-align: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .add-kr-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-blue);
+    }
+
+    /* 记一笔样式 */
+    .checkin-form {
+      max-width: 600px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 日志流水 */
+    .logs-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .filter-select {
+      padding: 10px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .log-group {
+      margin-bottom: 24px;
+    }
+
+    .log-date-header {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 12px;
+    }
+
+    .log-entry {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 8px;
+    }
+
+    .log-entry.from-todo {
+      border-left: 3px solid var(--accent-green);
+    }
+
+    .log-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .log-entry-content {
+      flex: 1;
+      white-space: pre-wrap;
+    }
+
+    .log-entry-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .log-entry:hover .log-entry-actions {
+      opacity: 1;
+    }
+
+    .log-entry-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .log-source-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      background: var(--accent-green)22;
+      color: var(--accent-green);
+      border-radius: 4px;
+    }
+
+    /* 标签 */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--accent-blue)22;
+      color: var(--accent-blue);
+    }
+
+    .tags-input-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      min-height: 44px;
+      align-items: center;
+    }
+
+    .tags-input-container:focus-within {
+      border-color: var(--accent-blue);
+    }
+
+    .tag-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: var(--accent-blue)22;
+      color: var(--accent-blue);
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .tag-remove {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .tag-remove:hover {
+      opacity: 1;
+    }
+
+    .tags-input {
+      flex: 1;
+      min-width: 100px;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .tags-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .tags-suggestions.hidden {
+      display: none;
+    }
+
+    .tag-suggestion {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag-suggestion:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .tag-color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    /* 日历 */
+    .calendar-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .calendar-nav-btn {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .calendar-nav-btn:hover {
+      background: var(--border-color);
+    }
+
+    .calendar-current {
+      font-size: 1.2rem;
+      font-weight: 600;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .calendar-view-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .calendar-view-btn {
+      padding: 8px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .calendar-view-btn.active {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+
+    .calendar-month {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .calendar-weekday {
+      padding: 12px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .calendar-day:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .calendar-day.empty {
+      background: var(--bg-primary);
+      cursor: default;
+    }
+
+    .calendar-day.today {
+      background: var(--accent-blue)11;
+      border-color: var(--accent-blue);
+    }
+
+    .calendar-day-num {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .calendar-day-dots {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+
+    .calendar-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .calendar-year-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .calendar-year-month {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .calendar-year-month:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+    }
+
+    .calendar-year-month-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .calendar-year-month-stats {
+      display: flex;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .calendar-day-detail {
+      margin-top: 24px;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .calendar-day-detail.hidden {
+      display: none;
+    }
+
+    .calendar-day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .calendar-day-date {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    /* 待办事项 */
+    .todo-section {
+      margin-bottom: 24px;
+    }
+
+    .todo-section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .todo-count {
+      font-size: 0.85rem;
+      padding: 2px 8px;
+      background: var(--bg-tertiary);
+      border-radius: 10px;
+      color: var(--text-secondary);
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+
+    .todo-item:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .todo-item.completed {
+      opacity: 0.6;
+    }
+
+    .todo-item.completed .todo-content {
+      text-decoration: line-through;
+    }
+
+    .todo-item.overdue {
+      border-left: 3px solid var(--accent-red);
+    }
+
+    .todo-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .todo-checkbox:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .todo-checkbox.checked {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: white;
+    }
+
+    .todo-body {
+      flex: 1;
+    }
+
+    .todo-content {
+      margin-bottom: 4px;
+    }
+
+    .todo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .todo-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .todo-date.overdue {
+      color: var(--accent-red);
+    }
+
+    .todo-date.today {
+      color: var(--accent-blue);
+    }
+
+    .todo-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .todo-item:hover .todo-actions {
+      opacity: 1;
+    }
+
+    .add-todo-form {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .add-todo-form .form-input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* 标签管理 */
+    .tag-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .tag-color-preview {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+    }
+
+    .tag-info {
+      flex: 1;
+    }
+
+    .tag-name {
+      font-weight: 500;
+    }
+
+    .tag-count {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .tag-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.selected {
+      border-color: var(--text-primary);
+    }
+
+    /* 回收站 */
+    .trash-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .trash-content {
+      flex: 1;
+    }
+
+    .trash-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .trash-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* 模态框 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      background: var(--border-color);
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* 日期选择器 */
+    .date-picker-container {
+      position: relative;
+    }
+
+    .date-picker-input {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .date-picker-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 4px;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .date-picker-dropdown.hidden {
+      display: none;
+    }
+
+    .date-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .date-picker-nav {
+      padding: 4px 8px;
+      background: var(--bg-tertiary);
+      border: none;
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .date-picker-month {
+      font-weight: 600;
+    }
+
+    .date-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .date-picker-weekday {
+      padding: 8px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .date-picker-day {
+      padding: 8px;
+      text-align: center;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .date-picker-day:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .date-picker-day.selected {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .date-picker-day.today {
+      border: 1px solid var(--accent-blue);
+    }
+
+    .date-picker-day.other-month {
+      color: var(--text-muted);
+    }
+
+    /* Toast提示 */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      border-color: var(--accent-green);
+    }
+
+    .toast.error {
+      border-color: var(--accent-red);
+    }
+
+    .toast-icon {
+      font-size: 1.1rem;
+    }
+
+    .toast.success .toast-icon {
+      color: var(--accent-green);
+    }
+
+    .toast.error .toast-icon {
+      color: var(--accent-red);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .empty-title {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .menu-btn {
+        padding: 8px;
+        background: var(--bg-tertiary);
+        border: none;
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      .page {
+        padding: 16px;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .calendar-day {
+        padding: 4px;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-header {
+        display: none;
+      }
+
+      .sidebar-overlay {
+        display: none !important;
+      }
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 99;
+      display: none;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 移动端头部 -->
+    <div class="mobile-header">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <span class="logo">YearFlow</span>
+      <button class="menu-btn" onclick="toggleTheme()">🌓</button>
+    </div>
+
+    <!-- 侧边栏遮罩 -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">🎯 YearFlow</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">概览</div>
+          <div class="nav-item active" onclick="showView('dashboard')" data-view="dashboard">
+            <span class="nav-icon">📊</span>
+            <span>仪表盘</span>
+          </div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">记录</div>
+          <div class="nav-item" onclick="showView('checkin')" data-view="checkin">
+            <span class="nav-icon">✏️</span>
+            <span>记一笔</span>
+          </div>
+          <div class="nav-item" onclick="showView('logs')" data-view="logs">
+            <span class="nav-icon">📝</span>
+            <span>日志流水</span>
+          </div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">管理</div>
+          <div class="nav-item" onclick="showView('okrs')" data-view="okrs">
+            <span class="nav-icon">🎯</span>
+            <span>OKR管理</span>
+          </div>
+          <div class="nav-item" onclick="showView('calendar')" data-view="calendar">
+            <span class="nav-icon">📅</span>
+            <span>日历视图</span>
+          </div>
+          <div class="nav-item" onclick="showView('todos')" data-view="todos">
+            <span class="nav-icon">✅</span>
+            <span>待办事项</span>
+            <span class="nav-badge hidden" id="todo-badge">0</span>
+          </div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">其他</div>
+          <div class="nav-item" onclick="showView('tags')" data-view="tags">
+            <span class="nav-icon">🏷️</span>
+            <span>标签管理</span>
+          </div>
+          <div class="nav-item" onclick="showView('trash')" data-view="trash">
+            <span class="nav-icon">🗑️</span>
+            <span>回收站</span>
+            <span class="nav-badge hidden" id="trash-badge">0</span>
+          </div>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="theme-toggle" onclick="toggleTheme()">
+          <span class="nav-icon" id="theme-icon">🌙</span>
+          <span id="theme-text">深色模式</span>
+        </div>
+      </div>
+    </aside>
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- 仪表盘 -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <h1 class="page-title">📊 仪表盘</h1>
+          <div class="page-actions">
+            <button class="btn btn-secondary" onclick="exportAll()">💾 备份</button>
+            <button class="btn btn-secondary" onclick="exportMarkdown()">📄 导出MD</button>
+            <button class="btn btn-secondary" onclick="triggerImport()">📥 导入</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;">
+          </div>
+        </div>
+
+        <div class="year-theme" onclick="editYearTheme()">
+          <div class="year-theme-label">🌟 年度主题</div>
+          <div class="year-theme-text" id="year-theme-display">点击设置年度主题...</div>
+        </div>
+
+        <div class="dashboard-grid" id="dashboard-stats"></div>
+
+        <div id="focus-kr-container"></div>
+
+        <div class="quick-actions">
+          <div class="quick-action-btn" onclick="showView('checkin')">
+            <span class="quick-action-icon">✏️</span>
+            <span class="quick-action-text">记一笔</span>
+          </div>
+          <div class="quick-action-btn" onclick="showView('okrs')">
+            <span class="quick-action-icon">🎯</span>
+            <span class="quick-action-text">管理OKR</span>
+          </div>
+          <div class="quick-action-btn" onclick="showView('todos')">
+            <span class="quick-action-icon">✅</span>
+            <span class="quick-action-text">待办事项</span>
+          </div>
+          <div class="quick-action-btn" onclick="showView('calendar')">
+            <span class="quick-action-icon">📅</span>
+            <span class="quick-action-text">日历视图</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 今日待办</div>
+          <div id="dashboard-todos"></div>
+        </div>
+      </div>
+
+      <!-- 记一笔 -->
+      <div class="page" id="page-checkin">
+        <div class="page-header">
+          <h1 class="page-title">✏️ 记一笔</h1>
+        </div>
+
+        <div class="checkin-form">
+          <div class="form-group">
+            <label class="form-label">📅 日期</label>
+            <div class="date-picker-container" id="log-date-picker"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📝 今日记录</label>
+            <textarea class="form-textarea" id="log-content" placeholder="记录今天做了什么..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🎯 关联 OKR（可选）</label>
+            <select class="form-select" id="log-okr-select">
+              <option value="">不关联</option>
+            </select>
+          </div>
+
+          <div class="form-group hidden" id="log-kr-group">
+            <label class="form-label">📌 关联 KR</label>
+            <select class="form-select" id="log-kr-select">
+              <option value="">选择 KR</option>
+            </select>
+          </div>
+
+          <div class="form-group hidden" id="log-progress-group">
+            <label class="form-label">📈 进度增量</label>
+            <input type="number" class="form-input" id="log-progress" placeholder="本次增加的进度值">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🏷️ 标签</label>
+            <div class="date-picker-container" id="log-tags-input"></div>
+          </div>
+
+          <div class="card" style="background: var(--bg-tertiary);">
+            <div class="card-title">📋 明日待办（可选）</div>
+            <div class="form-group">
+              <label class="form-label">📅 日期</label>
+              <div class="date-picker-container" id="todo-date-picker"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">待办内容</label>
+              <input type="text" class="form-input" id="tomorrow-content" placeholder="明天要做的事...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🏷️ 标签</label>
+              <div class="date-picker-container" id="tomorrow-tags-input"></div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveLog()" style="width: 100%; margin-top: 16px;">
+            💾 保存记录
+          </button>
+        </div>
+      </div>
+
+      <!-- 日志流水 -->
+      <div class="page" id="page-logs">
+        <div class="page-header">
+          <h1 class="page-title">📝 日志流水</h1>
+        </div>
+
+        <div class="logs-header">
+          <div class="date-picker-container" id="log-month-picker" style="width: 160px;"></div>
+          <button class="btn btn-secondary" id="log-30days-btn" onclick="showRecent30Days()">最近30天</button>
+          <input type="text" class="search-input" id="log-search" placeholder="🔍 搜索日志...">
+          <select class="filter-select" id="log-filter-type">
+            <option value="all">全部类型</option>
+            <option value="log">仅日志</option>
+            <option value="todo">仅待办</option>
+            <option value="okr">按OKR</option>
+            <option value="tag">按标签</option>
+          </select>
+          <select class="filter-select hidden" id="log-filter-okr">
+            <option value="">选择 OKR</option>
+          </select>
+          <select class="filter-select hidden" id="log-filter-tag">
+            <option value="">选择标签</option>
+          </select>
+          <button class="btn btn-secondary" id="log-sort-btn" onclick="toggleLogSort()">↓ 最新</button>
+        </div>
+
+        <div id="logs-container"></div>
+        <div class="empty-state hidden" id="logs-empty">
+          <div class="empty-icon">📝</div>
+          <div class="empty-title">暂无日志记录</div>
+        </div>
+      </div>
+
+      <!-- OKR管理 -->
+      <div class="page" id="page-okrs">
+        <div class="page-header">
+          <h1 class="page-title">🎯 OKR管理</h1>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddOkrModal()">+ 新增目标</button>
+          </div>
+        </div>
+
+        <div id="okr-list"></div>
+        <div class="empty-state hidden" id="okr-empty">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-title">暂无目标</div>
+          <button class="btn btn-primary" onclick="showAddOkrModal()" style="margin-top: 16px;">创建第一个目标</button>
+        </div>
+      </div>
+
+      <!-- 日历视图 -->
+      <div class="page" id="page-calendar">
+        <div class="page-header">
+          <h1 class="page-title">📅 日历视图</h1>
+        </div>
+
+        <div class="calendar-controls">
+          <div class="calendar-nav">
+            <button class="calendar-nav-btn" onclick="calendarPrev()">◀</button>
+            <span class="calendar-current" id="calendar-current">2025年1月</span>
+            <button class="calendar-nav-btn" onclick="calendarNext()">▶</button>
+            <button class="calendar-nav-btn" onclick="calendarToday()">今天</button>
+          </div>
+          <div class="calendar-view-btns">
+            <button class="calendar-view-btn active" data-view="month" onclick="setCalendarView('month')">月</button>
+            <button class="calendar-view-btn" data-view="year" onclick="setCalendarView('year')">年</button>
+          </div>
+          <select class="filter-select" id="calendar-stat-type">
+            <option value="all">显示全部</option>
+            <option value="completed">已完成</option>
+            <option value="pending">待完成</option>
+          </select>
+        </div>
+
+        <div id="calendar-container"></div>
+
+        <div class="calendar-day-detail hidden" id="calendar-day-detail">
+          <div class="calendar-day-header">
+            <span class="calendar-day-date" id="calendar-day-date">1月1日</span>
+            <button class="btn btn-primary btn-sm" onclick="addTodoForDate()">+ 添加待办</button>
+          </div>
+          <div id="calendar-day-todos"></div>
+        </div>
+      </div>
+
+      <!-- 待办事项 -->
+      <div class="page" id="page-todos">
+        <div class="page-header">
+          <h1 class="page-title">✅ 待办事项</h1>
+        </div>
+
+        <div class="add-todo-form">
+          <input type="text" class="form-input" id="new-todo-content" placeholder="添加新待办...">
+          <div class="date-picker-container" id="new-todo-date" style="width: 140px;"></div>
+          <div class="date-picker-container" id="new-todo-tags" style="width: 200px;"></div>
+          <button class="btn btn-primary" onclick="addTodo()">添加</button>
+        </div>
+
+        <div class="todo-section">
+          <div class="todo-section-header">
+            <span>📌 今日待办</span>
+            <span class="todo-count" id="today-count">0</span>
+          </div>
+          <div id="today-list"></div>
+        </div>
+
+        <div class="todo-section">
+          <div class="todo-section-header">
+            <span>📋 未来待办</span>
+            <span class="todo-count" id="future-count">0</span>
+          </div>
+          <div id="future-list"></div>
+        </div>
+      </div>
+
+      <!-- 标签管理 -->
+      <div class="page" id="page-tags">
+        <div class="page-header">
+          <h1 class="page-title">🏷️ 标签管理</h1>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddTagModal()">+ 新增标签</button>
+          </div>
+        </div>
+
+        <div id="tags-list"></div>
+        <div class="empty-state hidden" id="tags-empty">
+          <div class="empty-icon">🏷️</div>
+          <div class="empty-title">暂无标签</div>
+          <button class="btn btn-primary" onclick="showAddTagModal()" style="margin-top: 16px;">创建第一个标签</button>
+        </div>
+      </div>
+
+      <!-- 回收站 -->
+      <div class="page" id="page-trash">
+        <div class="page-header">
+          <h1 class="page-title">🗑️ 回收站</h1>
+          <div class="page-actions">
+            <button class="btn btn-secondary" onclick="emptyTrash()">清空回收站</button>
+          </div>
+        </div>
+
+        <div class="empty-state hidden" id="trash-empty">
+          <div class="empty-icon">🗑️</div>
+          <div class="empty-title">回收站是空的</div>
+        </div>
+
+        <div id="trash-logs-section" class="hidden">
+          <div class="card-title">📝 已删除日志 (<span id="trash-logs-count">0</span>)</div>
+          <div id="trash-logs-list"></div>
+        </div>
+
+        <div id="trash-todos-section" class="hidden" style="margin-top: 24px;">
+          <div class="card-title">✅ 已删除待办 (<span id="trash-todos-count">0</span>)</div>
+          <div id="trash-todos-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast容器 -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- 年度主题模态框 -->
+  <div class="modal-overlay" id="modal-theme">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">设置年度主题</h3>
+        <button class="modal-close" onclick="closeModal('modal-theme')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">年度主题</label>
+          <input type="text" class="form-input" id="year-theme-input" placeholder="例如：专注成长、健康第一...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-theme')">取消</button>
+        <button class="btn btn-primary" onclick="saveYearTheme()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OKR模态框 -->
+  <div class="modal-overlay" id="modal-okr">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="okr-modal-title">新增目标</h3>
+        <button class="modal-close" onclick="closeModal('modal-okr')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-okr-id">
+        <div class="form-group">
+          <label class="form-label">目标名称</label>
+          <input type="text" class="form-input" id="okr-title" placeholder="例如：提升技术能力">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="okr-locked">
+            <span>🔒 加锁保护（需要密码查看）</span>
+          </label>
+        </div>
+        <div class="form-group hidden" id="okr-password-group">
+          <label class="form-label">设置密码</label>
+          <input type="password" class="form-input" id="okr-password" placeholder="输入密码">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-okr')">取消</button>
+        <button class="btn btn-primary" onclick="saveOkr()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 解锁模态框 -->
+  <div class="modal-overlay" id="modal-unlock">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">🔓 解锁目标</h3>
+        <button class="modal-close" onclick="closeModal('modal-unlock')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="unlock-okr-id">
+        <div class="form-group">
+          <label class="form-label">请输入密码</label>
+          <input type="password" class="form-input" id="unlock-password" placeholder="输入密码">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-unlock')">取消</button>
+        <button class="btn btn-primary" onclick="unlockOkr()">解锁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KR模态框 -->
+  <div class="modal-overlay" id="modal-kr">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="kr-modal-title">添加关键结果</h3>
+        <button class="modal-close" onclick="closeModal('modal-kr')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-kr-okr-id">
+        <input type="hidden" id="edit-kr-id">
+        <div class="form-group">
+          <label class="form-label">KR 描述</label>
+          <input type="text" class="form-input" id="kr-title" placeholder="例如：阅读12本书">
+        </div>
+        <div class="form-group">
+          <label class="form-label">类型</label>
+          <select class="form-select" id="kr-type">
+            <option value="numeric">进度条（数值型）</option>
+            <option value="checkbox">里程碑（完成/未完成）</option>
+          </select>
+        </div>
+        <div class="form-row" id="kr-target-group">
+          <div class="form-group">
+            <label class="form-label">目标值</label>
+            <input type="number" class="form-input" id="kr-target" placeholder="12">
+          </div>
+          <div class="form-group">
+            <label class="form-label">单位</label>
+            <input type="text" class="form-input" id="kr-unit" placeholder="本">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="kr-focused">
+            <span>⭐ 设为重点关注</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-kr')">取消</button>
+        <button class="btn btn-primary" onclick="saveKr()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标签模态框 -->
+  <div class="modal-overlay" id="modal-tag">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="tag-modal-title">新增标签</h3>
+        <button class="modal-close" onclick="closeModal('modal-tag')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-tag-id">
+        <div class="form-group">
+          <label class="form-label">标签名称</label>
+          <input type="text" class="form-input" id="tag-name" placeholder="例如：工作、学习">
+        </div>
+        <div class="form-group">
+          <label class="form-label">选择颜色</label>
+          <div class="color-picker">
+            <div class="color-option selected" data-color="#58a6ff" style="background: #58a6ff;"></div>
+            <div class="color-option" data-color="#3fb950" style="background: #3fb950;"></div>
+            <div class="color-option" data-color="#d29922" style="background: #d29922;"></div>
+            <div class="color-option" data-color="#f85149" style="background: #f85149;"></div>
+            <div class="color-option" data-color="#a371f7" style="background: #a371f7;"></div>
+            <div class="color-option" data-color="#f778ba" style="background: #f778ba;"></div>
+            <div class="color-option" data-color="#79c0ff" style="background: #79c0ff;"></div>
+            <div class="color-option" data-color="#7ee787" style="background: #7ee787;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-tag')">取消</button>
+        <button class="btn btn-primary" onclick="saveTag()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑待办模态框 -->
+  <div class="modal-overlay" id="modal-edit-todo">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">编辑待办</h3>
+        <button class="modal-close" onclick="closeModal('modal-edit-todo')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-todo-id">
+        <div class="form-group">
+          <label class="form-label">待办内容</label>
+          <input type="text" class="form-input" id="edit-todo-content">
+        </div>
+        <div class="form-group">
+          <label class="form-label">截止日期</label>
+          <div class="date-picker-container" id="edit-todo-date-picker"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">标签</label>
+          <div class="date-picker-container" id="edit-todo-tags"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit-todo')">取消</button>
+        <button class="btn btn-primary" onclick="saveEditedTodo()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日历添加待办模态框 -->
+  <div class="modal-overlay" id="modal-calendar-todo">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="calendar-todo-title">添加待办</h3>
+        <button class="modal-close" onclick="closeModal('modal-calendar-todo')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="calendar-todo-date">
+        <div class="form-group">
+          <label class="form-label">待办内容</label>
+          <input type="text" class="form-input" id="calendar-todo-content" placeholder="输入待办内容...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">标签</label>
+          <div class="date-picker-container" id="calendar-todo-tags"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-calendar-todo')">取消</button>
+        <button class="btn btn-primary" onclick="saveCalendarTodo()">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== 常量和状态 ====================
+    const CURRENT_YEAR = new Date().getFullYear();
+    const DB_NAME = 'YearFlowDB';
+    const DB_VERSION = 1;
+    const STORES = {
+      settings: 'settings',
+      okrs: 'okrs',
+      logs: 'logs',
+      todos: 'todos',
+      tags: 'tags'
+    };
+
+    let db = null;
+    let tagColors = {};
+    let unlockedOkrs = new Set();
+    let logSortAsc = false;
+    let calendarYear = new Date().getFullYear();
+    let calendarMonth = new Date().getMonth();
+    let calendarViewMode = 'month';
+    let selectedCalendarDate = null;
+    let previousView = null;
+
+    // 日期选择器和标签输入实例
+    let logDatePicker = null;
+    let todoDatePicker = null;
+    let logTagsInput = null;
+    let tomorrowTagsInput = null;
+    let logMonthPicker = null;
+    let newTodoDatePicker = null;
+    let newTodoTagsInput = null;
+    let editTodoDatePicker = null;
+    let editTodoTagsInput = null;
+    let calendarTodoTagsInput = null;
+    // ==================== IndexedDB ====================
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          resolve(db);
+        };
+
+        request.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          Object.values(STORES).forEach(storeName => {
+            if (!database.objectStoreNames.contains(storeName)) {
+              database.createObjectStore(storeName, { keyPath: 'id' });
+            }
+          });
+        };
+      });
+    }
+
+    function getAll(storeName) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function getById(storeName, id) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function save(storeName, data) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const request = store.put(data);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function remove(storeName, id) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function getSetting(key, defaultValue = null) {
+      const setting = await getById(STORES.settings, key);
+      return setting ? setting.value : defaultValue;
+    }
+
+    async function setSetting(key, value) {
+      await save(STORES.settings, { id: key, value });
+    }
+
+    // ==================== 工具函数 ====================
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function getToday() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatDate(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      return `${parseInt(m)}月${parseInt(d)}日`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function getTagColor(tagName) {
+      return tagColors[tagName] || '#58a6ff';
+    }
+
+    async function loadTagColors() {
+      const tags = await getAll(STORES.tags);
+      tagColors = {};
+      tags.forEach(tag => {
+        tagColors[tag.name] = tag.color;
+      });
+    }
+
+    // ==================== 主题切换 ====================
+    function loadTheme() {
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      updateThemeUI(theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeUI(newTheme);
+    }
+
+    function updateThemeUI(theme) {
+      document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+      document.getElementById('theme-text').textContent = theme === 'dark' ? '深色模式' : '浅色模式';
+    }
+
+    // ==================== 侧边栏 ====================
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    }
+
+    // ==================== 视图切换 ====================
+    async function showView(viewName) {
+      previousView = localStorage.getItem('currentView');
+      localStorage.setItem('currentView', viewName);
+
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.getElementById(`page-${viewName}`).classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.view === viewName);
+      });
+
+      closeSidebar();
+
+      switch (viewName) {
+        case 'dashboard':
+          await renderDashboard();
+          break;
+        case 'checkin':
+          await initCheckinPage();
+          break;
+        case 'logs':
+          await initLogsPage();
+          break;
+        case 'okrs':
+          await renderOkrList();
+          break;
+        case 'calendar':
+          await renderCalendar();
+          break;
+        case 'todos':
+          await initTodosPage();
+          break;
+        case 'tags':
+          await renderTagList();
+          break;
+        case 'trash':
+          await renderTrash();
+          break;
+      }
+    }
+
+    async function updateBadges() {
+      const todos = await getAll(STORES.todos);
+      const logs = await getAll(STORES.logs);
+
+      const today = getToday();
+      const pendingTodos = todos.filter(t => !t.deletedAt && !t.completed && t.dueDate <= today);
+      const todoBadge = document.getElementById('todo-badge');
+      if (pendingTodos.length > 0) {
+        todoBadge.textContent = pendingTodos.length;
+        todoBadge.classList.remove('hidden');
+      } else {
+        todoBadge.classList.add('hidden');
+      }
+
+      const deletedLogs = logs.filter(l => l.deletedAt);
+      const deletedTodos = todos.filter(t => t.deletedAt);
+      const trashCount = deletedLogs.length + deletedTodos.length;
+      const trashBadge = document.getElementById('trash-badge');
+      if (trashCount > 0) {
+        trashBadge.textContent = trashCount;
+        trashBadge.classList.remove('hidden');
+      } else {
+        trashBadge.classList.add('hidden');
+      }
+    }
+
+    // ==================== 日期选择器组件 ====================
+    function createDatePicker(containerId, options = {}) {
+      const container = document.getElementById(containerId);
+      if (!container) return null;
+
+      const initialDate = options.initialDate || getToday();
+      const showDay = options.showDay !== false;
+      const isMonthPicker = options.monthOnly === true;
+
+      let selectedDate = initialDate;
+      let viewYear = parseInt(initialDate.split('-')[0]);
+      let viewMonth = parseInt(initialDate.split('-')[1]) - 1;
+
+      const inputId = `${containerId}-input`;
+      const dropdownId = `${containerId}-dropdown`;
+
+      container.innerHTML = `
+        <input type="text" class="date-picker-input" id="${inputId}" readonly>
+        <div class="date-picker-dropdown hidden" id="${dropdownId}"></div>
+      `;
+
+      const input = document.getElementById(inputId);
+      const dropdown = document.getElementById(dropdownId);
+
+      function formatDisplay(dateStr) {
+        const [y, m, d] = dateStr.split('-');
+        if (isMonthPicker) {
+          return `${y}年${parseInt(m)}月`;
+        }
+        return showDay ? `${y}年${parseInt(m)}月${parseInt(d)}日` : `${parseInt(m)}月${parseInt(d)}日`;
+      }
+
+      function render() {
+        input.value = formatDisplay(selectedDate);
+
+        if (isMonthPicker) {
+          dropdown.innerHTML = `
+            <div class="date-picker-header">
+              <button type="button" class="date-picker-nav" data-action="prev-year">◀</button>
+              <span class="date-picker-month">${viewYear}年</span>
+              <button type="button" class="date-picker-nav" data-action="next-year">▶</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+              ${Array.from({length: 12}, (_, i) => {
+                const monthStr = `${viewYear}-${String(i + 1).padStart(2, '0')}`;
+                const isSelected = selectedDate.startsWith(monthStr);
+                return `<div class="date-picker-day ${isSelected ? 'selected' : ''}" data-month="${i}">${i + 1}月</div>`;
+              }).join('')}
+            </div>
+          `;
+        } else {
+          const firstDay = new Date(viewYear, viewMonth, 1);
+          const lastDay = new Date(viewYear, viewMonth + 1, 0);
+          const startDayOfWeek = firstDay.getDay();
+          const daysInMonth = lastDay.getDate();
+
+          const today = getToday();
+          const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+
+          let daysHtml = weekdays.map(d => `<div class="date-picker-weekday">${d}</div>`).join('');
+
+          for (let i = 0; i < startDayOfWeek; i++) {
+            const prevMonth = new Date(viewYear, viewMonth, -startDayOfWeek + i + 1);
+            const dateStr = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}-${String(prevMonth.getDate()).padStart(2, '0')}`;
+            daysHtml += `<div class="date-picker-day other-month" data-date="${dateStr}">${prevMonth.getDate()}</div>`;
+          }
+
+          for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = dateStr === today;
+            const isSelected = dateStr === selectedDate;
+            daysHtml += `<div class="date-picker-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-date="${dateStr}">${day}</div>`;
+          }
+
+          const totalCells = startDayOfWeek + daysInMonth;
+          const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+          for (let i = 1; i <= remaining; i++) {
+            const nextMonth = new Date(viewYear, viewMonth + 1, i);
+            const dateStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-${String(nextMonth.getDate()).padStart(2, '0')}`;
+            daysHtml += `<div class="date-picker-day other-month" data-date="${dateStr}">${i}</div>`;
+          }
+
+          dropdown.innerHTML = `
+            <div class="date-picker-header">
+              <button type="button" class="date-picker-nav" data-action="prev">◀</button>
+              <span class="date-picker-month">${viewYear}年${viewMonth + 1}月</span>
+              <button type="button" class="date-picker-nav" data-action="next">▶</button>
+            </div>
+            <div class="date-picker-grid">${daysHtml}</div>
+          `;
+        }
+      }
+
+      input.onclick = (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.date-picker-dropdown').forEach(d => {
+          if (d !== dropdown) d.classList.add('hidden');
+        });
+        dropdown.classList.toggle('hidden');
+      };
+
+      dropdown.onclick = (e) => {
+        e.stopPropagation();
+        const action = e.target.dataset.action;
+        const date = e.target.dataset.date;
+        const month = e.target.dataset.month;
+
+        if (action === 'prev') {
+          viewMonth--;
+          if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+          render();
+        } else if (action === 'next') {
+          viewMonth++;
+          if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+          render();
+        } else if (action === 'prev-year') {
+          viewYear--;
+          render();
+        } else if (action === 'next-year') {
+          viewYear++;
+          render();
+        } else if (date) {
+          selectedDate = date;
+          const [y, m] = date.split('-');
+          viewYear = parseInt(y);
+          viewMonth = parseInt(m) - 1;
+          render();
+          dropdown.classList.add('hidden');
+          if (options.onChange) options.onChange(selectedDate);
+        } else if (month !== undefined) {
+          selectedDate = `${viewYear}-${String(parseInt(month) + 1).padStart(2, '0')}-01`;
+          render();
+          dropdown.classList.add('hidden');
+          if (options.onChange) options.onChange(selectedDate);
+        }
+      };
+
+      document.addEventListener('click', () => dropdown.classList.add('hidden'));
+
+      render();
+
+      return {
+        getValue: () => selectedDate,
+        setValue: (date) => {
+          selectedDate = date;
+          const [y, m] = date.split('-');
+          viewYear = parseInt(y);
+          viewMonth = parseInt(m) - 1;
+          render();
+        }
+      };
+    }
+
+    // ==================== 标签输入组件 ====================
+    function createTagsInput(containerId, options = {}) {
+      const container = document.getElementById(containerId);
+      if (!container) return null;
+
+      let tags = options.initialTags || [];
+
+      const wrapperId = `${containerId}-wrapper`;
+      const inputId = `${containerId}-input`;
+      const suggestionsId = `${containerId}-suggestions`;
+
+      container.innerHTML = `
+        <div class="tags-input-container" id="${wrapperId}">
+          <input type="text" class="tags-input" id="${inputId}" placeholder="输入标签后按回车...">
+        </div>
+        <div class="tags-suggestions hidden" id="${suggestionsId}"></div>
+      `;
+
+      container.style.position = 'relative';
+
+      const wrapper = document.getElementById(wrapperId);
+      const input = document.getElementById(inputId);
+      const suggestions = document.getElementById(suggestionsId);
+
+      function render() {
+        const tagsHtml = tags.map(tag => `
+          <span class="tag-item" style="background: ${getTagColor(tag)}22; color: ${getTagColor(tag)};">
+            ${escapeHtml(tag)}
+            <span class="tag-remove" data-tag="${escapeHtml(tag)}">×</span>
+          </span>
+        `).join('');
+
+        wrapper.innerHTML = tagsHtml + `<input type="text" class="tags-input" id="${inputId}" placeholder="${tags.length ? '' : '输入标签后按回车...'}">`;
+
+        const newInput = document.getElementById(inputId);
+        newInput.onkeydown = handleKeydown;
+        newInput.oninput = handleInput;
+        newInput.onfocus = handleInput;
+
+        wrapper.querySelectorAll('.tag-remove').forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            const tagToRemove = btn.dataset.tag;
+            tags = tags.filter(t => t !== tagToRemove);
+            render();
+          };
+        });
+      }
+
+      async function handleInput() {
+        const value = document.getElementById(inputId).value.trim().toLowerCase();
+        const allTags = await getAll(STORES.tags);
+        const filtered = allTags.filter(t =>
+          t.name.toLowerCase().includes(value) && !tags.includes(t.name)
+        );
+
+        if (filtered.length > 0 && value.length > 0) {
+          suggestions.innerHTML = filtered.map(t => `
+            <div class="tag-suggestion" data-name="${escapeHtml(t.name)}">
+              <span class="tag-color-dot" style="background: ${t.color};"></span>
+              <span>${escapeHtml(t.name)}</span>
+            </div>
+          `).join('');
+          suggestions.classList.remove('hidden');
+        } else {
+          suggestions.classList.add('hidden');
+        }
+      }
+
+      function handleKeydown(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = e.target.value.trim();
+          if (value && !tags.includes(value)) {
+            tags.push(value);
+            render();
+          }
+          suggestions.classList.add('hidden');
+        }
+      }
+
+      suggestions.onclick = (e) => {
+        const name = e.target.closest('.tag-suggestion')?.dataset.name;
+        if (name && !tags.includes(name)) {
+          tags.push(name);
+          render();
+        }
+        suggestions.classList.add('hidden');
+      };
+
+      wrapper.onclick = () => document.getElementById(inputId)?.focus();
+
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+          suggestions.classList.add('hidden');
+        }
+      });
+
+      render();
+
+      return {
+        getValue: () => [...tags],
+        setValue: (newTags) => {
+          tags = [...newTags];
+          render();
+        }
+      };
+    }
+
+    // ==================== 仪表盘 ====================
+    async function renderDashboard() {
+      const theme = await getSetting('yearTheme', '');
+      const themeDisplay = document.getElementById('year-theme-display');
+      themeDisplay.textContent = theme || '点击设置年度主题...';
+
+      const okrs = await getAll(STORES.okrs);
+      const logs = await getAll(STORES.logs);
+      const todos = await getAll(STORES.todos);
+
+      const today = getToday();
+      const activeLogs = logs.filter(l => !l.deletedAt);
+      const activeTodos = todos.filter(t => !t.deletedAt);
+      const completedTodos = activeTodos.filter(t => t.completed);
+      const pendingTodos = activeTodos.filter(t => !t.completed && t.dueDate <= today);
+
+      let totalProgress = 0;
+      let okrCount = 0;
+      okrs.forEach(okr => {
+        const krs = okr.keyResults || [];
+        if (krs.length > 0) {
+          let okrProgress = 0;
+          krs.forEach(kr => {
+            if (kr.type === 'checkbox') {
+              okrProgress += kr.completed ? 100 : 0;
+            } else {
+              okrProgress += kr.targetValue > 0 ? Math.min(100, (kr.currentValue / kr.targetValue) * 100) : 0;
+            }
+          });
+          totalProgress += okrProgress / krs.length;
+          okrCount++;
+        }
+      });
+      const avgProgress = okrCount > 0 ? Math.round(totalProgress / okrCount) : 0;
+
+      const startOfYear = new Date(CURRENT_YEAR, 0, 1);
+      const endOfYear = new Date(CURRENT_YEAR, 11, 31);
+      const now = new Date();
+      const yearProgress = Math.round(((now - startOfYear) / (endOfYear - startOfYear)) * 100);
+
+      const statsContainer = document.getElementById('dashboard-stats');
+      statsContainer.innerHTML = `
+        <div class="stat-card" onclick="showView('okrs')">
+          <div class="stat-label">🎯 OKR 整体进度</div>
+          <div class="stat-value">${avgProgress}%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${avgProgress}%;"></div></div>
+        </div>
+        <div class="stat-card" onclick="showView('logs')">
+          <div class="stat-label">📝 日志记录</div>
+          <div class="stat-value">${activeLogs.length}</div>
+          <div class="stat-sub">条记录</div>
+        </div>
+        <div class="stat-card" onclick="showView('todos')">
+          <div class="stat-label">✅ 待办完成</div>
+          <div class="stat-value">${completedTodos.length}/${activeTodos.length}</div>
+          <div class="stat-sub">${pendingTodos.length} 项待处理</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📅 年度进度</div>
+          <div class="stat-value">${yearProgress}%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${yearProgress}%;"></div></div>
+        </div>
+      `;
+
+      const focusContainer = document.getElementById('focus-kr-container');
+      let focusHtml = '';
+      okrs.forEach(okr => {
+        (okr.keyResults || []).forEach(kr => {
+          if (kr.focused) {
+            let progressHtml = '';
+            if (kr.type === 'checkbox') {
+              progressHtml = kr.completed ? '✅ 已完成' : '⬜ 未完成';
+            } else {
+              const pct = kr.targetValue > 0 ? Math.round((kr.currentValue / kr.targetValue) * 100) : 0;
+              progressHtml = `
+                <div class="kr-progress-row">
+                  <span>${kr.currentValue}/${kr.targetValue} ${kr.unit || ''}</span>
+                  <div class="progress-bar kr-progress-bar"><div class="progress-fill" style="width: ${pct}%;"></div></div>
+                  <span>${pct}%</span>
+                </div>
+              `;
+            }
+            focusHtml += `
+              <div class="focus-kr">
+                <div class="focus-kr-header">
+                  <span>⭐</span>
+                  <span class="focus-kr-title">${escapeHtml(kr.title)}</span>
+                </div>
+                <div class="focus-kr-okr">📌 ${escapeHtml(okr.title)}</div>
+                ${progressHtml}
+              </div>
+            `;
+          }
+        });
+      });
+      focusContainer.innerHTML = focusHtml;
+
+      const todosContainer = document.getElementById('dashboard-todos');
+      const todayTodos = activeTodos.filter(t => !t.completed && t.dueDate <= today).slice(0, 5);
+
+      if (todayTodos.length === 0) {
+        todosContainer.innerHTML = `<div class="empty-state" style="padding: 20px;"><div class="empty-title">今日无待办 🎉</div></div>`;
+      } else {
+        todosContainer.innerHTML = todayTodos.map(t => `
+          <div class="todo-item ${t.dueDate < today ? 'overdue' : ''}">
+            <div class="todo-checkbox" onclick="toggleTodo('${t.id}')"></div>
+            <div class="todo-body">
+              <div class="todo-content">${escapeHtml(t.content)}</div>
+              <div class="todo-meta">
+                ${t.dueDate < today ? `<span class="todo-date overdue">过期</span>` : `<span class="todo-date today">今天</span>`}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function editYearTheme() {
+      getSetting('yearTheme', '').then(theme => {
+        document.getElementById('year-theme-input').value = theme;
+        openModal('modal-theme');
+      });
+    }
+
+    async function saveYearTheme() {
+      const theme = document.getElementById('year-theme-input').value.trim();
+      await setSetting('yearTheme', theme);
+      closeModal('modal-theme');
+      showToast('年度主题已保存', 'success');
+      await renderDashboard();
+    }
+
+    // ==================== 记一笔 ====================
+    async function initCheckinPage() {
+      if (!logDatePicker) {
+        logDatePicker = createDatePicker('log-date-picker', { initialDate: getToday() });
+      }
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+      if (!todoDatePicker) {
+        todoDatePicker = createDatePicker('todo-date-picker', { initialDate: tomorrowStr });
+      } else {
+        todoDatePicker.setValue(tomorrowStr);
+      }
+
+      if (!logTagsInput) {
+        logTagsInput = createTagsInput('log-tags-input', { initialTags: [] });
+      } else {
+        logTagsInput.setValue([]);
+      }
+
+      if (!tomorrowTagsInput) {
+        tomorrowTagsInput = createTagsInput('tomorrow-tags-input', { initialTags: [] });
+      } else {
+        tomorrowTagsInput.setValue([]);
+      }
+
+      document.getElementById('log-content').value = '';
+      document.getElementById('tomorrow-content').value = '';
+
+      const okrSelect = document.getElementById('log-okr-select');
+      const okrs = await getAll(STORES.okrs);
+      okrSelect.innerHTML = '<option value="">不关联</option>' +
+        okrs.map(o => `<option value="${o.id}">${escapeHtml(o.title)}</option>`).join('');
+
+      document.getElementById('log-kr-group').classList.add('hidden');
+      document.getElementById('log-progress-group').classList.add('hidden');
+    }
+
+    document.getElementById('log-okr-select').onchange = async function() {
+      const okrId = this.value;
+      const krGroup = document.getElementById('log-kr-group');
+      const krSelect = document.getElementById('log-kr-select');
+
+      if (!okrId) {
+        krGroup.classList.add('hidden');
+        document.getElementById('log-progress-group').classList.add('hidden');
+        return;
+      }
+
+      const okr = await getById(STORES.okrs, okrId);
+      if (okr && okr.keyResults && okr.keyResults.length > 0) {
+        krSelect.innerHTML = '<option value="">选择 KR</option>' +
+          okr.keyResults.map(kr => `<option value="${kr.id}">${escapeHtml(kr.title)}</option>`).join('');
+        krGroup.classList.remove('hidden');
+      } else {
+        krGroup.classList.add('hidden');
+      }
+      document.getElementById('log-progress-group').classList.add('hidden');
+    };
+
+    document.getElementById('log-kr-select').onchange = async function() {
+      const okrId = document.getElementById('log-okr-select').value;
+      const krId = this.value;
+      const progressGroup = document.getElementById('log-progress-group');
+
+      if (!krId) {
+        progressGroup.classList.add('hidden');
+        return;
+      }
+
+      const okr = await getById(STORES.okrs, okrId);
+      const kr = okr?.keyResults?.find(k => k.id === krId);
+
+      if (kr && kr.type === 'numeric') {
+        progressGroup.classList.remove('hidden');
+        document.getElementById('log-progress').value = '';
+      } else {
+        progressGroup.classList.add('hidden');
+      }
+    };
+
+    async function saveLog() {
+      const date = logDatePicker.getValue();
+      const content = document.getElementById('log-content').value.trim();
+
+      if (!content) {
+        showToast('请输入日志内容', 'error');
+        return;
+      }
+
+      const okrId = document.getElementById('log-okr-select').value;
+      const krId = document.getElementById('log-kr-select').value;
+      const progressDelta = parseFloat(document.getElementById('log-progress').value) || 0;
+      const tags = logTagsInput.getValue();
+
+      const log = {
+        id: generateId(),
+        date,
+        content,
+        okrId: okrId || null,
+        krId: krId || null,
+        progressDelta,
+        tags,
+        createdAt: new Date().toISOString(),
+        deletedAt: null
+      };
+
+      await save(STORES.logs, log);
+
+      if (okrId && krId && progressDelta > 0) {
+        const okr = await getById(STORES.okrs, okrId);
+        const kr = okr?.keyResults?.find(k => k.id === krId);
+        if (kr && kr.type === 'numeric') {
+          kr.currentValue = (kr.currentValue || 0) + progressDelta;
+          await save(STORES.okrs, okr);
+        }
+      }
+
+      const tomorrowContent = document.getElementById('tomorrow-content').value.trim();
+      if (tomorrowContent) {
+        const todo = {
+          id: generateId(),
+          content: tomorrowContent,
+          dueDate: todoDatePicker.getValue(),
+          tags: tomorrowTagsInput.getValue(),
+          completed: false,
+          createdAt: new Date().toISOString(),
+          deletedAt: null
+        };
+        await save(STORES.todos, todo);
+      }
+
+      showToast('记录已保存', 'success');
+      await initCheckinPage();
+      await updateBadges();
+    }
+    // ==================== 日志流水 ====================
+    async function initLogsPage() {
+      if (!logMonthPicker) {
+        logMonthPicker = createDatePicker('log-month-picker', {
+          initialDate: getToday(),
+          monthOnly: true,
+          onChange: renderLogs
+        });
+      }
+
+      const okrs = await getAll(STORES.okrs);
+      const tags = await getAll(STORES.tags);
+
+      document.getElementById('log-filter-okr').innerHTML = '<option value="">选择 OKR</option>' +
+        okrs.map(o => `<option value="${o.id}">${escapeHtml(o.title)}</option>`).join('');
+
+      document.getElementById('log-filter-tag').innerHTML = '<option value="">选择标签</option>' +
+        tags.map(t => `<option value="${t.name}">${escapeHtml(t.name)}</option>`).join('');
+
+      await renderLogs();
+    }
+
+    document.getElementById('log-filter-type').onchange = function() {
+      const type = this.value;
+      document.getElementById('log-filter-okr').classList.toggle('hidden', type !== 'okr');
+      document.getElementById('log-filter-tag').classList.toggle('hidden', type !== 'tag');
+      renderLogs();
+    };
+
+    document.getElementById('log-filter-okr').onchange = renderLogs;
+    document.getElementById('log-filter-tag').onchange = renderLogs;
+    document.getElementById('log-search').oninput = renderLogs;
+
+    function toggleLogSort() {
+      logSortAsc = !logSortAsc;
+      document.getElementById('log-sort-btn').textContent = logSortAsc ? '↑ 最早' : '↓ 最新';
+      renderLogs();
+    }
+
+    let showRecentMode = false;
+
+    function showRecent30Days() {
+      showRecentMode = !showRecentMode;
+      document.getElementById('log-30days-btn').classList.toggle('btn-primary', showRecentMode);
+      document.getElementById('log-30days-btn').classList.toggle('btn-secondary', !showRecentMode);
+      renderLogs();
+    }
+
+    async function renderLogs() {
+      const logs = await getAll(STORES.logs);
+      const todos = await getAll(STORES.todos);
+      const search = document.getElementById('log-search').value.toLowerCase();
+      const filterType = document.getElementById('log-filter-type').value;
+      const filterOkr = document.getElementById('log-filter-okr').value;
+      const filterTag = document.getElementById('log-filter-tag').value;
+
+      let entries = [];
+
+      const activeLogs = logs.filter(l => !l.deletedAt);
+      activeLogs.forEach(log => {
+        entries.push({ type: 'log', date: log.date, data: log });
+      });
+
+      const completedTodos = todos.filter(t => !t.deletedAt && t.completed && t.completedAt);
+      completedTodos.forEach(todo => {
+        const completedDate = todo.completedAt.split('T')[0];
+        entries.push({ type: 'todo', date: completedDate, data: todo });
+      });
+
+      let selectedMonth = '';
+      if (logMonthPicker && !showRecentMode) {
+        selectedMonth = logMonthPicker.getValue().substring(0, 7);
+      }
+
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoStr = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
+
+      entries = entries.filter(entry => {
+        if (showRecentMode) {
+          if (entry.date < thirtyDaysAgoStr) return false;
+        } else if (selectedMonth) {
+          if (!entry.date.startsWith(selectedMonth)) return false;
+        }
+
+        if (filterType === 'log' && entry.type !== 'log') return false;
+        if (filterType === 'todo' && entry.type !== 'todo') return false;
+
+        if (filterType === 'okr' && filterOkr) {
+          if (entry.type !== 'log' || entry.data.okrId !== filterOkr) return false;
+        }
+
+        if (filterType === 'tag' && filterTag) {
+          const entryTags = entry.data.tags || [];
+          if (!entryTags.includes(filterTag)) return false;
+        }
+
+        if (search) {
+          const content = entry.data.content.toLowerCase();
+          if (!content.includes(search)) return false;
+        }
+
+        return true;
+      });
+
+      entries.sort((a, b) => {
+        const cmp = a.date.localeCompare(b.date);
+        return logSortAsc ? cmp : -cmp;
+      });
+
+      const container = document.getElementById('logs-container');
+      const emptyState = document.getElementById('logs-empty');
+
+      if (entries.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      const groups = {};
+      entries.forEach(entry => {
+        if (!groups[entry.date]) groups[entry.date] = [];
+        groups[entry.date].push(entry);
+      });
+
+      const sortedDates = Object.keys(groups).sort((a, b) => logSortAsc ? a.localeCompare(b) : b.localeCompare(a));
+
+      container.innerHTML = sortedDates.map(date => `
+        <div class="log-group">
+          <div class="log-date-header">${formatDate(date)}</div>
+          ${groups[date].map(entry => {
+            if (entry.type === 'log') {
+              const log = entry.data;
+              return `
+                <div class="log-entry">
+                  <div class="log-entry-header">
+                    <div class="log-entry-content">${escapeHtml(log.content)}</div>
+                    <div class="log-entry-actions">
+                      <button class="btn btn-ghost btn-sm" onclick="deleteLog('${log.id}')">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="log-entry-meta">
+                    ${(log.tags || []).map(t => `<span class="tag" style="background: ${getTagColor(t)}22; color: ${getTagColor(t)};">${escapeHtml(t)}</span>`).join('')}
+                  </div>
+                </div>
+              `;
+            } else {
+              const todo = entry.data;
+              return `
+                <div class="log-entry from-todo">
+                  <div class="log-entry-header">
+                    <div class="log-entry-content">✅ ${escapeHtml(todo.content)}</div>
+                  </div>
+                  <div class="log-entry-meta">
+                    <span class="log-source-badge">已完成待办</span>
+                    ${(todo.tags || []).map(t => `<span class="tag" style="background: ${getTagColor(t)}22; color: ${getTagColor(t)};">${escapeHtml(t)}</span>`).join('')}
+                  </div>
+                </div>
+              `;
+            }
+          }).join('')}
+        </div>
+      `).join('');
+    }
+
+    async function deleteLog(id) {
+      if (!confirm('确定删除这条日志吗？')) return;
+      const log = await getById(STORES.logs, id);
+      if (log) {
+        log.deletedAt = new Date().toISOString();
+        await save(STORES.logs, log);
+        showToast('已移至回收站', 'success');
+        await renderLogs();
+        await updateBadges();
+      }
+    }
+
+    // ==================== OKR管理 ====================
+    async function renderOkrList() {
+      const okrs = await getAll(STORES.okrs);
+      const container = document.getElementById('okr-list');
+      const emptyState = document.getElementById('okr-empty');
+
+      if (okrs.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = okrs.map(okr => {
+        const isUnlocked = !okr.locked || unlockedOkrs.has(okr.id);
+        const krs = okr.keyResults || [];
+
+        let okrProgress = 0;
+        if (krs.length > 0) {
+          krs.forEach(kr => {
+            if (kr.type === 'checkbox') {
+              okrProgress += kr.completed ? 100 : 0;
+            } else {
+              okrProgress += kr.targetValue > 0 ? Math.min(100, (kr.currentValue / kr.targetValue) * 100) : 0;
+            }
+          });
+          okrProgress = Math.round(okrProgress / krs.length);
+        }
+
+        if (!isUnlocked) {
+          return `
+            <div class="okr-card">
+              <div class="okr-header" onclick="promptUnlock('${okr.id}')">
+                <span class="okr-toggle">🔒</span>
+                <span class="okr-title">${escapeHtml(okr.title)}</span>
+                <span class="okr-progress">点击解锁</span>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="okr-card">
+            <div class="okr-header" onclick="toggleOkrExpand(this)">
+              <span class="okr-toggle">▼</span>
+              <span class="okr-title">${okr.locked ? '🔒 ' : ''}${escapeHtml(okr.title)}</span>
+              <span class="okr-progress">${okrProgress}%</span>
+              <div class="okr-actions">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); editOkr('${okr.id}')">✏️</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); deleteOkr('${okr.id}')">🗑️</button>
+              </div>
+            </div>
+            <div class="kr-list">
+              ${krs.map(kr => {
+                let progressHtml = '';
+                if (kr.type === 'checkbox') {
+                  progressHtml = `
+                    <div class="kr-progress-row">
+                      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" ${kr.completed ? 'checked' : ''} onchange="toggleKrCheckbox('${okr.id}', '${kr.id}', this.checked)">
+                        <span>${kr.completed ? '已完成' : '未完成'}</span>
+                      </label>
+                    </div>
+                  `;
+                } else {
+                  const pct = kr.targetValue > 0 ? Math.round((kr.currentValue / kr.targetValue) * 100) : 0;
+                  progressHtml = `
+                    <div class="kr-progress-row">
+                      <input type="number" class="kr-value-input" value="${kr.currentValue || 0}" 
+                        onchange="updateKrValue('${okr.id}', '${kr.id}', this.value)">
+                      <span>/ ${kr.targetValue} ${kr.unit || ''}</span>
+                      <div class="progress-bar kr-progress-bar"><div class="progress-fill" style="width: ${pct}%;"></div></div>
+                      <span>${pct}%</span>
+                    </div>
+                  `;
+                }
+
+                return `
+                  <div class="kr-item ${kr.focused ? 'focused' : ''}">
+                    <span class="kr-type ${kr.type === 'checkbox' ? 'checkbox' : ''}">${kr.type === 'checkbox' ? '里程碑' : '进度'}</span>
+                    <div class="kr-info">
+                      <div class="kr-title-row">
+                        <span class="kr-title">${escapeHtml(kr.title)}</span>
+                        ${kr.focused ? '<span class="kr-focus-badge">⭐ 重点</span>' : ''}
+                      </div>
+                      ${progressHtml}
+                    </div>
+                    <div class="okr-actions">
+                      <button class="btn btn-ghost btn-sm" onclick="editKr('${okr.id}', '${kr.id}')">✏️</button>
+                      <button class="btn btn-ghost btn-sm" onclick="deleteKr('${okr.id}', '${kr.id}')">🗑️</button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+              <div class="add-kr-btn" onclick="showAddKrModal('${okr.id}')">+ 添加关键结果</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleOkrExpand(header) {
+      const toggle = header.querySelector('.okr-toggle');
+      const krList = header.nextElementSibling;
+      toggle.classList.toggle('collapsed');
+      krList.classList.toggle('hidden');
+    }
+
+    function showAddOkrModal() {
+      document.getElementById('okr-modal-title').textContent = '新增目标';
+      document.getElementById('edit-okr-id').value = '';
+      document.getElementById('okr-title').value = '';
+      document.getElementById('okr-locked').checked = false;
+      document.getElementById('okr-password').value = '';
+      document.getElementById('okr-password-group').classList.add('hidden');
+      openModal('modal-okr');
+    }
+
+    document.getElementById('okr-locked').onchange = function() {
+      document.getElementById('okr-password-group').classList.toggle('hidden', !this.checked);
+    };
+
+    async function editOkr(id) {
+      const okr = await getById(STORES.okrs, id);
+      if (!okr) return;
+
+      document.getElementById('okr-modal-title').textContent = '编辑目标';
+      document.getElementById('edit-okr-id').value = id;
+      document.getElementById('okr-title').value = okr.title;
+      document.getElementById('okr-locked').checked = okr.locked || false;
+      document.getElementById('okr-password').value = '';
+      document.getElementById('okr-password-group').classList.toggle('hidden', !okr.locked);
+      openModal('modal-okr');
+    }
+
+    async function saveOkr() {
+      const id = document.getElementById('edit-okr-id').value;
+      const title = document.getElementById('okr-title').value.trim();
+      const locked = document.getElementById('okr-locked').checked;
+      const password = document.getElementById('okr-password').value;
+
+      if (!title) {
+        showToast('请输入目标名称', 'error');
+        return;
+      }
+
+      let okr;
+      if (id) {
+        okr = await getById(STORES.okrs, id);
+        okr.title = title;
+        okr.locked = locked;
+        if (password) okr.password = password;
+      } else {
+        okr = {
+          id: generateId(),
+          title,
+          locked,
+          password: locked ? password : null,
+          keyResults: [],
+          createdAt: new Date().toISOString()
+        };
+      }
+
+      await save(STORES.okrs, okr);
+      closeModal('modal-okr');
+      showToast('目标已保存', 'success');
+      await renderOkrList();
+    }
+
+    async function deleteOkr(id) {
+      if (!confirm('确定删除这个目标及其所有KR吗？')) return;
+      await remove(STORES.okrs, id);
+      showToast('目标已删除', 'success');
+      await renderOkrList();
+    }
+
+    function promptUnlock(id) {
+      document.getElementById('unlock-okr-id').value = id;
+      document.getElementById('unlock-password').value = '';
+      openModal('modal-unlock');
+    }
+
+    async function unlockOkr() {
+      const id = document.getElementById('unlock-okr-id').value;
+      const password = document.getElementById('unlock-password').value;
+      const okr = await getById(STORES.okrs, id);
+
+      if (okr && okr.password === password) {
+        unlockedOkrs.add(id);
+        closeModal('modal-unlock');
+        showToast('解锁成功', 'success');
+        await renderOkrList();
+      } else {
+        showToast('密码错误', 'error');
+      }
+    }
+
+    function showAddKrModal(okrId) {
+      document.getElementById('kr-modal-title').textContent = '添加关键结果';
+      document.getElementById('edit-kr-okr-id').value = okrId;
+      document.getElementById('edit-kr-id').value = '';
+      document.getElementById('kr-title').value = '';
+      document.getElementById('kr-type').value = 'numeric';
+      document.getElementById('kr-target').value = '';
+      document.getElementById('kr-unit').value = '';
+      document.getElementById('kr-focused').checked = false;
+      document.getElementById('kr-target-group').classList.remove('hidden');
+      openModal('modal-kr');
+    }
+
+    document.getElementById('kr-type').onchange = function() {
+      document.getElementById('kr-target-group').classList.toggle('hidden', this.value === 'checkbox');
+    };
+
+    async function editKr(okrId, krId) {
+      const okr = await getById(STORES.okrs, okrId);
+      const kr = okr?.keyResults?.find(k => k.id === krId);
+      if (!kr) return;
+
+      document.getElementById('kr-modal-title').textContent = '编辑关键结果';
+      document.getElementById('edit-kr-okr-id').value = okrId;
+      document.getElementById('edit-kr-id').value = krId;
+      document.getElementById('kr-title').value = kr.title;
+      document.getElementById('kr-type').value = kr.type;
+      document.getElementById('kr-target').value = kr.targetValue || '';
+      document.getElementById('kr-unit').value = kr.unit || '';
+      document.getElementById('kr-focused').checked = kr.focused || false;
+      document.getElementById('kr-target-group').classList.toggle('hidden', kr.type === 'checkbox');
+      openModal('modal-kr');
+    }
+
+    async function saveKr() {
+      const okrId = document.getElementById('edit-kr-okr-id').value;
+      const krId = document.getElementById('edit-kr-id').value;
+      const title = document.getElementById('kr-title').value.trim();
+      const type = document.getElementById('kr-type').value;
+      const targetValue = parseFloat(document.getElementById('kr-target').value) || 0;
+      const unit = document.getElementById('kr-unit').value.trim();
+      const focused = document.getElementById('kr-focused').checked;
+
+      if (!title) {
+        showToast('请输入KR描述', 'error');
+        return;
+      }
+
+      const okr = await getById(STORES.okrs, okrId);
+      if (!okr) return;
+
+      if (!okr.keyResults) okr.keyResults = [];
+
+      if (krId) {
+        const kr = okr.keyResults.find(k => k.id === krId);
+        if (kr) {
+          kr.title = title;
+          kr.type = type;
+          kr.targetValue = targetValue;
+          kr.unit = unit;
+          kr.focused = focused;
+        }
+      } else {
+        okr.keyResults.push({
+          id: generateId(),
+          title,
+          type,
+          targetValue,
+          currentValue: 0,
+          unit,
+          focused,
+          completed: false
+        });
+      }
+
+      await save(STORES.okrs, okr);
+      closeModal('modal-kr');
+      showToast('KR已保存', 'success');
+      await renderOkrList();
+    }
+
+    async function deleteKr(okrId, krId) {
+      if (!confirm('确定删除这个KR吗？')) return;
+      const okr = await getById(STORES.okrs, okrId);
+      if (okr) {
+        okr.keyResults = (okr.keyResults || []).filter(k => k.id !== krId);
+        await save(STORES.okrs, okr);
+        showToast('KR已删除', 'success');
+        await renderOkrList();
+      }
+    }
+
+    async function updateKrValue(okrId, krId, value) {
+      const okr = await getById(STORES.okrs, okrId);
+      const kr = okr?.keyResults?.find(k => k.id === krId);
+      if (kr) {
+        kr.currentValue = parseFloat(value) || 0;
+        await save(STORES.okrs, okr);
+        await renderOkrList();
+      }
+    }
+
+    async function toggleKrCheckbox(okrId, krId, completed) {
+      const okr = await getById(STORES.okrs, okrId);
+      const kr = okr?.keyResults?.find(k => k.id === krId);
+      if (kr) {
+        kr.completed = completed;
+        await save(STORES.okrs, okr);
+        await renderOkrList();
+      }
+    }
+
+    // ==================== 日历视图 ====================
+    async function renderCalendar() {
+      const container = document.getElementById('calendar-container');
+      document.getElementById('calendar-current').textContent =
+        calendarViewMode === 'year' ? `${calendarYear}年` : `${calendarYear}年${calendarMonth + 1}月`;
+
+      if (calendarViewMode === 'year') {
+        await renderYearCalendar(container);
+      } else {
+        await renderMonthCalendar(container);
+      }
+    }
+
+    async function renderMonthCalendar(container) {
+      const todos = await getAll(STORES.todos);
+      const logs = await getAll(STORES.logs);
+      const statType = document.getElementById('calendar-stat-type').value;
+
+      const firstDay = new Date(calendarYear, calendarMonth, 1);
+      const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+      const startDayOfWeek = firstDay.getDay();
+      const daysInMonth = lastDay.getDate();
+      const today = getToday();
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+
+      let html = `<div class="calendar-month"><div class="calendar-weekdays">`;
+      html += weekdays.map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+      html += `</div><div class="calendar-days">`;
+
+      for (let i = 0; i < startDayOfWeek; i++) {
+        html += `<div class="calendar-day empty"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = dateStr === today;
+
+        const dayTodos = todos.filter(t => !t.deletedAt && t.dueDate === dateStr);
+        const dayLogs = logs.filter(l => !l.deletedAt && l.date === dateStr);
+
+        let dots = [];
+        if (statType === 'all' || statType === 'completed') {
+          const completed = dayTodos.filter(t => t.completed).length;
+          if (completed > 0) dots.push('var(--accent-green)');
+        }
+        if (statType === 'all' || statType === 'pending') {
+          const pending = dayTodos.filter(t => !t.completed).length;
+          if (pending > 0) dots.push('var(--accent-yellow)');
+        }
+        if (dayLogs.length > 0) dots.push('var(--accent-blue)');
+
+        html += `
+          <div class="calendar-day ${isToday ? 'today' : ''}" onclick="selectCalendarDate('${dateStr}')">
+            <span class="calendar-day-num">${day}</span>
+            <div class="calendar-day-dots">
+              ${dots.slice(0, 3).map(c => `<span class="calendar-dot" style="background: ${c};"></span>`).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      html += `</div></div>`;
+      container.innerHTML = html;
+    }
+
+    async function renderYearCalendar(container) {
+      const todos = await getAll(STORES.todos);
+
+      let html = `<div class="calendar-year-grid">`;
+
+      for (let month = 0; month < 12; month++) {
+        const monthStr = `${calendarYear}-${String(month + 1).padStart(2, '0')}`;
+        const monthTodos = todos.filter(t => !t.deletedAt && t.dueDate.startsWith(monthStr));
+        const completed = monthTodos.filter(t => t.completed).length;
+        const pending = monthTodos.filter(t => !t.completed).length;
+
+        html += `
+          <div class="calendar-year-month" onclick="goToMonth(${month})">
+            <div class="calendar-year-month-name">${month + 1}月</div>
+            <div class="calendar-year-month-stats">
+              <span style="color: var(--accent-green);">✓${completed}</span>
+              <span style="color: var(--accent-yellow);">○${pending}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function calendarPrev() {
+      if (calendarViewMode === 'year') {
+        calendarYear--;
+      } else {
+        calendarMonth--;
+        if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+      }
+      renderCalendar();
+    }
+
+    function calendarNext() {
+      if (calendarViewMode === 'year') {
+        calendarYear++;
+      } else {
+        calendarMonth++;
+        if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+      }
+      renderCalendar();
+    }
+
+    function calendarToday() {
+      const now = new Date();
+      calendarYear = now.getFullYear();
+      calendarMonth = now.getMonth();
+      calendarViewMode = 'month';
+      document.querySelectorAll('.calendar-view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === 'month');
+      });
+      renderCalendar();
+    }
+
+    function setCalendarView(view) {
+      calendarViewMode = view;
+      document.querySelectorAll('.calendar-view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+      renderCalendar();
+    }
+
+    function goToMonth(month) {
+      calendarMonth = month;
+      calendarViewMode = 'month';
+      document.querySelectorAll('.calendar-view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === 'month');
+      });
+      renderCalendar();
+    }
+
+    async function selectCalendarDate(dateStr) {
+      selectedCalendarDate = dateStr;
+      const detail = document.getElementById('calendar-day-detail');
+      const dateDisplay = document.getElementById('calendar-day-date');
+      const todosContainer = document.getElementById('calendar-day-todos');
+
+      detail.classList.remove('hidden');
+      dateDisplay.textContent = formatDate(dateStr);
+
+      const todos = await getAll(STORES.todos);
+      const dayTodos = todos.filter(t => !t.deletedAt && t.dueDate === dateStr);
+
+      if (dayTodos.length === 0) {
+        todosContainer.innerHTML = `<div class="empty-state" style="padding: 20px;"><div class="empty-title">当日无待办</div></div>`;
+      } else {
+        todosContainer.innerHTML = dayTodos.map(t => `
+          <div class="todo-item ${t.completed ? 'completed' : ''}">
+            <div class="todo-checkbox ${t.completed ? 'checked' : ''}" onclick="toggleTodo('${t.id}'); selectCalendarDate('${dateStr}');">
+              ${t.completed ? '✓' : ''}
+            </div>
+            <div class="todo-body">
+              <div class="todo-content">${escapeHtml(t.content)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function addTodoForDate() {
+      if (!selectedCalendarDate) return;
+      document.getElementById('calendar-todo-date').value = selectedCalendarDate;
+      document.getElementById('calendar-todo-title').textContent = `添加待办 - ${formatDate(selectedCalendarDate)}`;
+      document.getElementById('calendar-todo-content').value = '';
+
+      if (!calendarTodoTagsInput) {
+        calendarTodoTagsInput = createTagsInput('calendar-todo-tags', { initialTags: [] });
+      } else {
+        calendarTodoTagsInput.setValue([]);
+      }
+
+      openModal('modal-calendar-todo');
+    }
+
+    async function saveCalendarTodo() {
+      const date = document.getElementById('calendar-todo-date').value;
+      const content = document.getElementById('calendar-todo-content').value.trim();
+
+      if (!content) {
+        showToast('请输入待办内容', 'error');
+        return;
+      }
+
+      const todo = {
+        id: generateId(),
+        content,
+        dueDate: date,
+        tags: calendarTodoTagsInput ? calendarTodoTagsInput.getValue() : [],
+        completed: false,
+        createdAt: new Date().toISOString(),
+        deletedAt: null
+      };
+
+      await save(STORES.todos, todo);
+      closeModal('modal-calendar-todo');
+            showToast('待办已添加', 'success');
+      await selectCalendarDate(date);
+      await renderCalendar();
+      await updateBadges();
+    }
+
+    document.getElementById('calendar-stat-type').onchange = renderCalendar;
+
+    // ==================== 待办事项 ====================
+    async function initTodosPage() {
+      if (!newTodoDatePicker) {
+        newTodoDatePicker = createDatePicker('new-todo-date', { initialDate: getToday() });
+      }
+
+      if (!newTodoTagsInput) {
+        newTodoTagsInput = createTagsInput('new-todo-tags', { initialTags: [] });
+      } else {
+        newTodoTagsInput.setValue([]);
+      }
+
+      document.getElementById('new-todo-content').value = '';
+      await renderTodoList();
+    }
+
+    async function renderTodoList() {
+      const todos = await getAll(STORES.todos);
+      const today = getToday();
+      const activeTodos = todos.filter(t => !t.deletedAt && !t.completed);
+
+      const todayTodos = activeTodos.filter(t => t.dueDate <= today);
+      const futureTodos = activeTodos.filter(t => t.dueDate > today);
+
+      document.getElementById('today-count').textContent = todayTodos.length;
+      document.getElementById('future-count').textContent = futureTodos.length;
+
+      const todayList = document.getElementById('today-list');
+      const futureList = document.getElementById('future-list');
+
+      if (todayTodos.length === 0) {
+        todayList.innerHTML = `<div class="empty-state" style="padding: 20px;"><div class="empty-title">今日无待办 🎉</div></div>`;
+      } else {
+        todayList.innerHTML = todayTodos.sort((a, b) => a.dueDate.localeCompare(b.dueDate)).map(t => renderTodoItem(t, today)).join('');
+      }
+
+      if (futureTodos.length === 0) {
+        futureList.innerHTML = `<div class="empty-state" style="padding: 20px;"><div class="empty-title">暂无未来待办</div></div>`;
+      } else {
+        futureList.innerHTML = futureTodos.sort((a, b) => a.dueDate.localeCompare(b.dueDate)).map(t => renderTodoItem(t, today)).join('');
+      }
+    }
+
+    function renderTodoItem(todo, today) {
+      const isOverdue = todo.dueDate < today;
+      const isToday = todo.dueDate === today;
+
+      return `
+        <div class="todo-item ${todo.completed ? 'completed' : ''} ${isOverdue ? 'overdue' : ''}">
+          <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo('${todo.id}')">
+            ${todo.completed ? '✓' : ''}
+          </div>
+          <div class="todo-body">
+            <div class="todo-content">${escapeHtml(todo.content)}</div>
+            <div class="todo-meta">
+              <span class="todo-date ${isOverdue ? 'overdue' : ''} ${isToday ? 'today' : ''}">
+                ${isOverdue ? '已过期 · ' : ''}${formatDate(todo.dueDate)}
+              </span>
+              ${(todo.tags || []).map(t => `<span class="tag" style="background: ${getTagColor(t)}22; color: ${getTagColor(t)};">${escapeHtml(t)}</span>`).join('')}
+            </div>
+          </div>
+          <div class="todo-actions">
+            <button class="btn btn-ghost btn-sm" onclick="showEditTodoModal('${todo.id}')">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteTodo('${todo.id}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function addTodo() {
+      const content = document.getElementById('new-todo-content').value.trim();
+      if (!content) {
+        showToast('请输入待办内容', 'error');
+        return;
+      }
+
+      const todo = {
+        id: generateId(),
+        content,
+        dueDate: newTodoDatePicker.getValue(),
+        tags: newTodoTagsInput.getValue(),
+        completed: false,
+        createdAt: new Date().toISOString(),
+        deletedAt: null
+      };
+
+      await save(STORES.todos, todo);
+      document.getElementById('new-todo-content').value = '';
+      newTodoTagsInput.setValue([]);
+      showToast('待办已添加', 'success');
+      await renderTodoList();
+      await updateBadges();
+    }
+
+    async function toggleTodo(id) {
+      const todo = await getById(STORES.todos, id);
+      if (todo) {
+        todo.completed = !todo.completed;
+        todo.completedAt = todo.completed ? new Date().toISOString() : null;
+        await save(STORES.todos, todo);
+        await renderTodoList();
+        await updateBadges();
+
+        const currentView = localStorage.getItem('currentView');
+        if (currentView === 'dashboard') {
+          await renderDashboard();
+        }
+      }
+    }
+
+    async function showEditTodoModal(id) {
+      const todo = await getById(STORES.todos, id);
+      if (!todo) return;
+
+      document.getElementById('edit-todo-id').value = id;
+      document.getElementById('edit-todo-content').value = todo.content;
+
+      if (!editTodoDatePicker) {
+        editTodoDatePicker = createDatePicker('edit-todo-date-picker', { initialDate: todo.dueDate });
+      } else {
+        editTodoDatePicker.setValue(todo.dueDate);
+      }
+
+      if (!editTodoTagsInput) {
+        editTodoTagsInput = createTagsInput('edit-todo-tags', { initialTags: todo.tags || [] });
+      } else {
+        editTodoTagsInput.setValue(todo.tags || []);
+      }
+
+      openModal('modal-edit-todo');
+    }
+
+    async function saveEditedTodo() {
+      const id = document.getElementById('edit-todo-id').value;
+      const content = document.getElementById('edit-todo-content').value.trim();
+
+      if (!content) {
+        showToast('请输入待办内容', 'error');
+        return;
+      }
+
+      const todo = await getById(STORES.todos, id);
+      if (todo) {
+        todo.content = content;
+        todo.dueDate = editTodoDatePicker.getValue();
+        todo.tags = editTodoTagsInput.getValue();
+        await save(STORES.todos, todo);
+        closeModal('modal-edit-todo');
+        showToast('待办已更新', 'success');
+        await renderTodoList();
+        await updateBadges();
+      }
+    }
+
+    async function deleteTodo(id) {
+      if (!confirm('确定删除这个待办吗？')) return;
+      const todo = await getById(STORES.todos, id);
+      if (todo) {
+        todo.deletedAt = new Date().toISOString();
+        await save(STORES.todos, todo);
+        showToast('已移至回收站', 'success');
+        await renderTodoList();
+        await updateBadges();
+      }
+    }
+
+    // ==================== 标签管理 ====================
+    async function renderTagList() {
+      const tags = await getAll(STORES.tags);
+      const logs = await getAll(STORES.logs);
+      const todos = await getAll(STORES.todos);
+      const container = document.getElementById('tags-list');
+      const emptyState = document.getElementById('tags-empty');
+
+      if (tags.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = tags.map(tag => {
+        const logCount = logs.filter(l => !l.deletedAt && (l.tags || []).includes(tag.name)).length;
+        const todoCount = todos.filter(t => !t.deletedAt && (t.tags || []).includes(tag.name)).length;
+        const totalCount = logCount + todoCount;
+
+        return `
+          <div class="tag-card">
+            <div class="tag-color-preview" style="background: ${tag.color};"></div>
+            <div class="tag-info">
+              <div class="tag-name">${escapeHtml(tag.name)}</div>
+              <div class="tag-count">使用 ${totalCount} 次</div>
+            </div>
+            <div class="tag-actions">
+              <button class="btn btn-ghost btn-sm" onclick="editTag('${tag.id}')">✏️</button>
+              <button class="btn btn-ghost btn-sm" onclick="deleteTag('${tag.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showAddTagModal() {
+      document.getElementById('tag-modal-title').textContent = '新增标签';
+      document.getElementById('edit-tag-id').value = '';
+      document.getElementById('tag-name').value = '';
+      document.querySelectorAll('.color-option').forEach((el, i) => {
+        el.classList.toggle('selected', i === 0);
+      });
+      openModal('modal-tag');
+    }
+
+    document.querySelectorAll('.color-option').forEach(el => {
+      el.onclick = function() {
+        document.querySelectorAll('.color-option').forEach(e => e.classList.remove('selected'));
+        this.classList.add('selected');
+      };
+    });
+
+    async function editTag(id) {
+      const tag = await getById(STORES.tags, id);
+      if (!tag) return;
+
+      document.getElementById('tag-modal-title').textContent = '编辑标签';
+      document.getElementById('edit-tag-id').value = id;
+      document.getElementById('tag-name').value = tag.name;
+
+      document.querySelectorAll('.color-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.color === tag.color);
+      });
+
+      openModal('modal-tag');
+    }
+
+    async function saveTag() {
+      const id = document.getElementById('edit-tag-id').value;
+      const name = document.getElementById('tag-name').value.trim();
+      const selectedColor = document.querySelector('.color-option.selected');
+      const color = selectedColor ? selectedColor.dataset.color : '#58a6ff';
+
+      if (!name) {
+        showToast('请输入标签名称', 'error');
+        return;
+      }
+
+      let tag;
+      if (id) {
+        tag = await getById(STORES.tags, id);
+        tag.name = name;
+        tag.color = color;
+      } else {
+        tag = {
+          id: generateId(),
+          name,
+          color,
+          createdAt: new Date().toISOString()
+        };
+      }
+
+      await save(STORES.tags, tag);
+      await loadTagColors();
+      closeModal('modal-tag');
+      showToast('标签已保存', 'success');
+      await renderTagList();
+    }
+
+    async function deleteTag(id) {
+      if (!confirm('确定删除这个标签吗？')) return;
+      await remove(STORES.tags, id);
+      await loadTagColors();
+      showToast('标签已删除', 'success');
+      await renderTagList();
+    }
+
+    // ==================== 回收站 ====================
+    async function renderTrash() {
+      const logs = await getAll(STORES.logs);
+      const todos = await getAll(STORES.todos);
+
+      const deletedLogs = logs.filter(l => l.deletedAt);
+      const deletedTodos = todos.filter(t => t.deletedAt);
+
+      const emptyState = document.getElementById('trash-empty');
+      const logsSection = document.getElementById('trash-logs-section');
+      const todosSection = document.getElementById('trash-todos-section');
+
+      if (deletedLogs.length === 0 && deletedTodos.length === 0) {
+        emptyState.classList.remove('hidden');
+        logsSection.classList.add('hidden');
+        todosSection.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      if (deletedLogs.length > 0) {
+        logsSection.classList.remove('hidden');
+        document.getElementById('trash-logs-count').textContent = deletedLogs.length;
+        document.getElementById('trash-logs-list').innerHTML = deletedLogs.map(log => `
+          <div class="trash-item">
+            <div class="trash-content">
+              <div>${escapeHtml(log.content)}</div>
+              <div class="trash-meta">删除于 ${new Date(log.deletedAt).toLocaleString()}</div>
+            </div>
+            <div class="trash-actions">
+              <button class="btn btn-secondary btn-sm" onclick="restoreLog('${log.id}')">恢复</button>
+              <button class="btn btn-ghost btn-sm" onclick="permanentDeleteLog('${log.id}')">彻底删除</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        logsSection.classList.add('hidden');
+      }
+
+      if (deletedTodos.length > 0) {
+        todosSection.classList.remove('hidden');
+        document.getElementById('trash-todos-count').textContent = deletedTodos.length;
+        document.getElementById('trash-todos-list').innerHTML = deletedTodos.map(todo => `
+          <div class="trash-item">
+            <div class="trash-content">
+              <div>${escapeHtml(todo.content)}</div>
+              <div class="trash-meta">删除于 ${new Date(todo.deletedAt).toLocaleString()}</div>
+            </div>
+            <div class="trash-actions">
+              <button class="btn btn-secondary btn-sm" onclick="restoreTodo('${todo.id}')">恢复</button>
+              <button class="btn btn-ghost btn-sm" onclick="permanentDeleteTodo('${todo.id}')">彻底删除</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        todosSection.classList.add('hidden');
+      }
+    }
+
+    async function restoreLog(id) {
+      const log = await getById(STORES.logs, id);
+      if (log) {
+        log.deletedAt = null;
+        await save(STORES.logs, log);
+        showToast('日志已恢复', 'success');
+        await renderTrash();
+        await updateBadges();
+      }
+    }
+
+    async function permanentDeleteLog(id) {
+      if (!confirm('彻底删除后无法恢复，确定吗？')) return;
+      await remove(STORES.logs, id);
+      showToast('已彻底删除', 'success');
+      await renderTrash();
+      await updateBadges();
+    }
+
+    async function restoreTodo(id) {
+      const todo = await getById(STORES.todos, id);
+      if (todo) {
+        todo.deletedAt = null;
+        await save(STORES.todos, todo);
+        showToast('待办已恢复', 'success');
+        await renderTrash();
+        await updateBadges();
+      }
+    }
+
+    async function permanentDeleteTodo(id) {
+      if (!confirm('彻底删除后无法恢复，确定吗？')) return;
+      await remove(STORES.todos, id);
+      showToast('已彻底删除', 'success');
+      await renderTrash();
+      await updateBadges();
+    }
+
+    async function emptyTrash() {
+      if (!confirm('确定清空回收站吗？此操作不可恢复。')) return;
+
+      const logs = await getAll(STORES.logs);
+      const todos = await getAll(STORES.todos);
+
+      for (const log of logs.filter(l => l.deletedAt)) {
+        await remove(STORES.logs, log.id);
+      }
+
+      for (const todo of todos.filter(t => t.deletedAt)) {
+        await remove(STORES.todos, todo.id);
+      }
+
+      showToast('回收站已清空', 'success');
+      await renderTrash();
+      await updateBadges();
+    }
+
+    // ==================== 导入导出 ====================
+    async function exportAll() {
+      const data = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        settings: await getAll(STORES.settings),
+        okrs: await getAll(STORES.okrs),
+        logs: await getAll(STORES.logs),
+        todos: await getAll(STORES.todos),
+        tags: await getAll(STORES.tags)
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `yearflow-backup-${getToday()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('备份已下载', 'success');
+    }
+
+    async function exportMarkdown() {
+      const okrs = await getAll(STORES.okrs);
+      const logs = await getAll(STORES.logs);
+      const todos = await getAll(STORES.todos);
+      const yearTheme = await getSetting('yearTheme', '');
+
+      let md = `# YearFlow 年度记录\n\n`;
+      md += `导出时间：${new Date().toLocaleString()}\n\n`;
+
+      if (yearTheme) {
+        md += `## 🌟 年度主题\n\n${yearTheme}\n\n`;
+      }
+
+      md += `## 🎯 OKR 目标\n\n`;
+      okrs.forEach(okr => {
+        md += `### ${okr.title}\n\n`;
+        (okr.keyResults || []).forEach(kr => {
+          if (kr.type === 'checkbox') {
+            md += `- [${kr.completed ? 'x' : ' '}] ${kr.title}\n`;
+          } else {
+            const pct = kr.targetValue > 0 ? Math.round((kr.currentValue / kr.targetValue) * 100) : 0;
+            md += `- ${kr.title}: ${kr.currentValue}/${kr.targetValue} ${kr.unit || ''} (${pct}%)\n`;
+          }
+        });
+        md += `\n`;
+      });
+
+      md += `## 📝 日志记录\n\n`;
+      const activeLogs = logs.filter(l => !l.deletedAt).sort((a, b) => b.date.localeCompare(a.date));
+      activeLogs.forEach(log => {
+        md += `### ${formatDate(log.date)}\n\n`;
+        md += `${log.content}\n\n`;
+        if (log.tags && log.tags.length > 0) {
+          md += `标签：${log.tags.join(', ')}\n\n`;
+        }
+      });
+
+      md += `## ✅ 待办事项\n\n`;
+      const activeTodos = todos.filter(t => !t.deletedAt).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+      activeTodos.forEach(todo => {
+        md += `- [${todo.completed ? 'x' : ' '}] ${todo.content} (${formatDate(todo.dueDate)})\n`;
+      });
+
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `yearflow-${getToday()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Markdown已导出', 'success');
+    }
+
+    function triggerImport() {
+      document.getElementById('import-file').click();
+    }
+
+    document.getElementById('import-file').onchange = async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        if (!data.version) {
+          showToast('无效的备份文件', 'error');
+          return;
+        }
+
+        if (!confirm('导入将覆盖现有数据，确定继续吗？')) return;
+
+        for (const setting of (data.settings || [])) {
+          await save(STORES.settings, setting);
+        }
+        for (const okr of (data.okrs || [])) {
+          await save(STORES.okrs, okr);
+        }
+        for (const log of (data.logs || [])) {
+          await save(STORES.logs, log);
+        }
+        for (const todo of (data.todos || [])) {
+          await save(STORES.todos, todo);
+        }
+        for (const tag of (data.tags || [])) {
+          await save(STORES.tags, tag);
+        }
+
+        await loadTagColors();
+        showToast('导入成功', 'success');
+        await showView('dashboard');
+        await updateBadges();
+      } catch (err) {
+        console.error(err);
+        showToast('导入失败：' + err.message, 'error');
+      }
+
+      e.target.value = '';
+    };
+
+    // ==================== 模态框 ====================
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.onclick = function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      };
+    });
+
+    // ==================== Toast ====================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <span class="toast-icon">${type === 'success' ? '✓' : '✕'}</span>
+        <span>${escapeHtml(message)}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ==================== 初始化 ====================
+    async function init() {
+      try {
+        await initDB();
+        await loadTagColors();
+        loadTheme();
+
+        const lastView = localStorage.getItem('currentView') || 'dashboard';
+        await showView(lastView);
+        await updateBadges();
+
+        console.log('YearFlow 初始化完成');
+      } catch (err) {
+        console.error('初始化失败:', err);
+        showToast('初始化失败，请刷新页面', 'error');
+      }
+    }
+
+    init();    // ==================== PWA Service Worker ====================
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'yearflow-v1';
+        const OFFLINE_URL = '/';
+        
+        self.addEventListener('install', (event) => {
+          self.skipWaiting();
+        });
+        
+        self.addEventListener('activate', (event) => {
+          event.waitUntil(clients.claim());
+        });
+        
+        self.addEventListener('fetch', (event) => {
+          // 对于导航请求，直接返回网络响应或缓存
+          if (event.request.mode === 'navigate') {
+            event.respondWith(
+              fetch(event.request).catch(() => {
+                return caches.match(event.request);
+              })
+            );
+            return;
+          }
+          
+          // 对于其他请求，网络优先，失败则使用缓存
+          event.respondWith(
+            fetch(event.request)
+              .then((response) => {
+                // 克隆响应并存入缓存
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(event.request, responseClone);
+                });
+                return response;
+              })
+              .catch(() => {
+                return caches.match(event.request);
+              })
+          );
+        });
+      `;
+      
+      const swBlob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(swBlob);
+      
+      navigator.serviceWorker.register(swUrl, { scope: '/' })
+        .then((registration) => {
+          console.log('PWA Service Worker 注册成功:', registration.scope);
+        })
+        .catch((error) => {
+          // 单文件模式下 scope 可能受限，这是正常的
+          console.log('PWA 以受限模式运行（单文件模式）');
+        });
+    }
+
+    // PWA 安装提示
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // 显示安装按钮
+      showInstallButton();
+    });
+
+    function showInstallButton() {
+      // 在导航栏添加安装按钮
+      const navRight = document.querySelector('.nav-right');
+      if (navRight && !document.getElementById('pwa-install-btn')) {
+        const installBtn = document.createElement('button');
+        installBtn.id = 'pwa-install-btn';
+        installBtn.className = 'menu-btn';
+        installBtn.innerHTML = '📲';
+        installBtn.title = '安装应用';
+        installBtn.onclick = installPWA;
+        navRight.insertBefore(installBtn, navRight.firstChild);
+      }
+    }
+
+    async function installPWA() {
+      if (!deferredPrompt) {
+        showToast('请使用浏览器菜单中的"添加到主屏幕"功能', 'info');
+        return;
+      }
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        showToast('应用安装成功！', 'success');
+      }
+      deferredPrompt = null;
+      
+      // 隐藏安装按钮
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.remove();
+    }
+
+    // 检测是否已安装
+    window.addEventListener('appinstalled', () => {
+      console.log('YearFlow 已安装到设备');
+      deferredPrompt = null;
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.remove();
+    });
+
+    init();
+  </script>
+</body>
+</html>
+
+  </script>
+</body>
+</html>
+
